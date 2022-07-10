@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/dts-v1/;
+
+#include "tegra30-lge-x3.dtsi"
+
+/ {
+	model = "LG Optimus Vu";
+	compatible = "lge,p895", "nvidia,tegra30";
+};
