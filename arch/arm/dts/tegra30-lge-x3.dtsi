@@ -35,6 +35,13 @@
 		status = "okay";
 		clock-frequency = <400000>;
 
+		backlight: lm3533@36 {
+			compatible = "ti,lm3533";
+			reg = <0x36>;
+
+			enable-gpios = <&gpio TEGRA_GPIO(N, 6) GPIO_ACTIVE_HIGH>;
+		};
+
 		/* MUIC on 0x44 */
 	};
 
@@ -113,22 +120,35 @@
 	gpio-keyboard {
 		compatible = "gpio-kbd";
 
-		power {
+		key-power {
 			label = "Power";
 			gpios = <&gpio TEGRA_GPIO(C, 7) GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_ENTER>;
 		};
 
-		volume-up {
-			label = "Volume Up";
-			gpios = <&gpio TEGRA_GPIO(I, 6) GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_UP>;
-		};
-
-		volume-down {
+		key-volume-down {
 			label = "Volume Down";
 			gpios = <&gpio TEGRA_GPIO(O, 4) GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_DOWN>;
 		};
+	};
+
+	bridge: bridge {
+		compatible = "solomon,ssd2825";
+
+		enable-gpios = <&gpio TEGRA_GPIO(B, 1) GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio TEGRA_GPIO(O, 2) GPIO_ACTIVE_HIGH>;
+
+		panel = <&panel>;
+		backlight = <&backlight>;
+	};
+
+	spi_bus: bridge-spi {
+		compatible = "lge,bridge-spi";
+
+		csx-gpios = <&gpio TEGRA_GPIO(N, 4) GPIO_ACTIVE_HIGH>;
+		sck-gpios = <&gpio TEGRA_GPIO(Z, 4) GPIO_ACTIVE_HIGH>;
+		sdi-gpios = <&gpio TEGRA_GPIO(Z, 2) GPIO_ACTIVE_HIGH>;
+		sdo-gpios = <&gpio TEGRA_GPIO(N, 5) GPIO_ACTIVE_HIGH>;
 	};
 };
