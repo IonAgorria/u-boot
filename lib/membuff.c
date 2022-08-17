@@ -292,28 +292,18 @@ int membuff_readline(struct membuff *mb, char *str, int maxlen, int minch)
 {
 	int len;  /* number of bytes read (!= string length) */
 	char *s, *end;
-	bool ok = false;
-	char *orig = str;
 
 	end = mb->head >= mb->tail ? mb->head : mb->end;
 	for (len = 0, s = mb->tail; s < end && len < maxlen - 1; str++) {
 		*str = *s++;
 		len++;
 		if (*str == '\n' || *str < minch) {
-			ok = true;
 			break;
 		}
 		if (s == end && mb->tail > mb->head) {
 			s = mb->start;
 			end = mb->head;
 		}
-	}
-
-	/* couldn't get the whole string */
-	if (!ok) {
-		if (maxlen)
-			*orig = '\0';
-		return 0;
 	}
 
 	/* terminate the string, update the membuff and return success */
