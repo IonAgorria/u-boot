@@ -5,6 +5,8 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch/clock.h>
+#include <asm/arch/funcmux.h>
 #include <asm/arch/tegra.h>
 #include <asm/arch-tegra/pmc.h>
 #include <linux/delay.h>
@@ -28,8 +30,30 @@ static void enable_cpu_power_rail(void)
 	udelay(3750);
 }
 
+static void t20_init_clocks(void)
+{
+	funcmux_select(PERIPH_ID_DVC_I2C, FUNCMUX_DVC_I2CP);
+
+	/* Put i2c in reset and enable clocks */
+	reset_set_enable(PERIPH_ID_DVC_I2C, 1);
+	clock_set_enable(PERIPH_ID_DVC_I2C, 1);
+
+	/*
+	 * Our high-level clock routines are not available prior to
+	 * relocation. We use the low-level functions which require a
+	 * hard-coded divisor. Use CLK_M with divide by (n + 1 = 17)
+	 */
+	clock_ll_set_source_divisor(PERIPH_ID_DVC_I2C, 3, 16);
+
+	/* Give clocks time to stabilize, then take i2c out of reset */
+	udelay(1000);
+	reset_set_enable(PERIPH_ID_DVC_I2C, 0);
+}
+
 void start_cpu(u32 reset_vector)
 {
+	t20_init_clocks();
+
 	/* Enable VDD_CPU */
 	enable_cpu_power_rail();
 
