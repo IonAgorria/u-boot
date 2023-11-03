@@ -1,0 +1,232 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include <dt-bindings/input/input.h>
+
+#include "tegra20.dtsi"
+
+/ {
+	model = "LG Optimus 2X (P990)";
+	compatible = "lg,star", "nvidia,tegra20";
+
+	chosen {
+		stdout-path = &uartb;
+	};
+
+	aliases {
+		i2c0 = &pwr_i2c;
+		i2c5 = &dcdc_i2c;
+
+		mmc0 = &sdmmc4;	/* eMMC */
+		mmc1 = &sdmmc3; /* uSD slot */
+
+		rtc0 = &pmic;
+		rtc1 = "/rtc@7000e000";
+
+		usb0 = &micro_usb;
+	};
+
+	memory {
+		device_type = "memory";
+		reg = <0x00000000 0x20000000>; /* 512 MB */
+	};
+
+	host1x@50000000 {
+		dc@54200000 {
+			rgb {
+				status = "okay";
+
+				nvidia,panel = <&bridge>;
+			};
+		};
+	};
+
+	uartb: serial@70006040 {
+		clocks = <&tegra_car 7>;
+		status = "okay";
+	};
+
+	pwr_i2c: i2c@7000d000 {
+		status = "okay";
+		clock-frequency = <400000>;
+
+		pmic: max8907@3c {
+			compatible = "maxim,max8907";
+			reg = <0x3c>;
+
+			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
+			#interrupt-cells = <2>;
+			interrupt-controller;
+
+			#gpio-cells = <2>;
+			gpio-controller;
+
+			maxim,system-power-controller;
+
+			regulators {
+				vdd_1v8_vio: sd3 {
+					regulator-name = "vcc_1v8_io";
+					regulator-min-microvolt = <1800000>;
+					regulator-max-microvolt = <1800000>;
+					regulator-always-on;
+					regulator-boot-on;
+				};
+
+				iovcc_1v8_lcd: ldo3 {
+					regulator-name = "vcc_1v8_lcd";
+					regulator-min-microvolt = <1800000>;
+					regulator-max-microvolt = <1800000>;
+					regulator-boot-on;
+				};
+
+				avdd_3v3_usb: ldo4 {
+					regulator-name = "avdd_3v3_usb";
+					regulator-min-microvolt = <3300000>;
+					regulator-max-microvolt = <3300000>;
+					regulator-always-on;
+					regulator-boot-on;
+				};
+
+				vcore_emmc: ldo5 {
+					regulator-name = "vcc_2v8_emmc";
+					regulator-min-microvolt = <2800000>;
+					regulator-max-microvolt = <2800000>;
+					regulator-boot-on;
+				};
+
+				vdd_usd: ldo12 {
+					regulator-name = "vcc_2v8_sdio";
+					regulator-min-microvolt = <2800000>;
+					regulator-max-microvolt = <2800000>;
+					regulator-boot-on;
+				};
+
+				vcc_2v8_lcd: ldo14 {
+					regulator-name = "vcc_2v8_lcd";
+					regulator-min-microvolt = <2800000>;
+					regulator-max-microvolt = <2800000>;
+					regulator-boot-on;
+				};
+			};
+		};
+	};
+
+	dcdc_i2c: i2c-5 {
+		compatible = "i2c-gpio";
+
+		sda-gpios = <&gpio TEGRA_GPIO(Q, 0) GPIO_ACTIVE_HIGH>;
+		scl-gpios = <&gpio TEGRA_GPIO(Q, 1) GPIO_ACTIVE_HIGH>;
+
+		i2c-gpio,delay-us = <5>;
+		i2c-gpio,timeout-ms = <100>;
+
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		aat2870: led-controller@60 {
+			compatible = "skyworks,aat2870";
+			reg = <0x60>;
+
+			enable-gpios = <&gpio TEGRA_GPIO(R, 3) GPIO_ACTIVE_HIGH>;
+			power-supply = <&vdd_3v3_vbat>;
+		};
+	};
+
+	micro_usb: usb@c5000000 {
+		status = "okay";
+		dr_mode = "otg";
+	};
+
+	usb-phy@c5000000 {
+		status = "okay";
+		vbus-supply = <&avdd_3v3_usb>;
+	};
+
+	sdmmc3: sdhci@c8000400 {
+		status = "okay";
+		bus-width = <4>;
+
+		cd-gpios = <&gpio TEGRA_GPIO(I, 5) GPIO_ACTIVE_LOW>;
+
+		vmmc-supply = <&vdd_usd>;
+		vqmmc-supply = <&vdd_1v8_vio>;
+	};
+
+	sdmmc4: sdhci@c8000600 {
+		status = "okay";
+		bus-width = <8>;
+		non-removable;
+
+		vmmc-supply = <&vcore_emmc>;
+		vqmmc-supply = <&vdd_1v8_vio>;
+	};
+
+	/* 32KHz oscillator which is used by PMC */
+	clk32k_in: clock-32k-in {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <32768>;
+		clock-output-names = "ref-oscillator";
+	};
+
+	bridge: cpu-8bit {
+		compatible = "nvidia,tegra-cpu-8bit";
+
+		dc-gpios = <&gpio TEGRA_GPIO(N, 6) GPIO_ACTIVE_HIGH>;
+		rw-gpios = <&gpio TEGRA_GPIO(B, 3) GPIO_ACTIVE_HIGH>;
+		cs-gpios = <&gpio TEGRA_GPIO(N, 4) GPIO_ACTIVE_HIGH>;
+
+		data-gpios = <&gpio TEGRA_GPIO(E, 0) GPIO_ACTIVE_HIGH>,
+			     <&gpio TEGRA_GPIO(E, 1) GPIO_ACTIVE_HIGH>,
+			     <&gpio TEGRA_GPIO(E, 2) GPIO_ACTIVE_HIGH>,
+			     <&gpio TEGRA_GPIO(E, 3) GPIO_ACTIVE_HIGH>,
+			     <&gpio TEGRA_GPIO(E, 4) GPIO_ACTIVE_HIGH>,
+			     <&gpio TEGRA_GPIO(E, 5) GPIO_ACTIVE_HIGH>,
+			     <&gpio TEGRA_GPIO(E, 6) GPIO_ACTIVE_HIGH>,
+			     <&gpio TEGRA_GPIO(E, 7) GPIO_ACTIVE_HIGH>;
+
+		panel = <&panel>;
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		key-power {
+			label = "Power";
+			gpios = <&gpio TEGRA_GPIO(V, 2) GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_ENTER>;
+		};
+
+		key-volume-up {
+			label = "Volume Up";
+			gpios = <&gpio TEGRA_GPIO(G, 1) GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_UP>;
+		};
+
+		key-volume-down {
+			label = "Volume Down";
+			gpios = <&gpio TEGRA_GPIO(G, 0) GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_DOWN>;
+		};
+	};
+
+	panel: panel {
+		compatible = "hitachi,tx10d07vm0baa";
+
+		reset-gpios = <&gpio TEGRA_GPIO(V, 7) GPIO_ACTIVE_LOW>;
+
+		avci-supply = <&vcc_2v8_lcd>;
+		iovcc-supply = <&iovcc_1v8_lcd>;
+
+		backlight = <&aat2870>;
+	};
+
+	vdd_3v3_vbat: regulator-vbat {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd_vbat";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+		regulator-boot-on;
+	};
+};
