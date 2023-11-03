@@ -1,0 +1,7 @@
+ENDEAVORU BOARD
+M:	Svyatoslav Ryhel <clamor95@gmail.com>
+S:	Maintained
+F:	board/lg/star/
+F:	configs/star_defconfig
+F:	doc/board/lg/star.rst
+F:	include/configs/star.h
