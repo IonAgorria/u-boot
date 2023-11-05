@@ -9,8 +9,12 @@
 #include <asm/arch/funcmux.h>
 #include <asm/arch/tegra.h>
 #include <asm/arch-tegra/pmc.h>
+#include <asm/arch-tegra/tegra_i2c.h>
 #include <linux/delay.h>
 #include "../cpu.h"
+
+/* In case this function is not defined */
+__weak void pmic_enable_cpu_vdd(void) {}
 
 static void enable_cpu_power_rail(void)
 {
@@ -56,6 +60,7 @@ void start_cpu(u32 reset_vector)
 
 	/* Enable VDD_CPU */
 	enable_cpu_power_rail();
+	pmic_enable_cpu_vdd();
 
 	/* Hold the CPUs in reset */
 	reset_A9_cpu(1);
