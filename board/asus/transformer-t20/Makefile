@@ -6,4 +6,6 @@
 #  (C) Copyright 2021
 #  Svyatoslav Ryhel <clamor95@gmail.com>
 
+obj-$(CONFIG_SPL_BUILD) += transformer-t20-spl.o
+
 obj-y += transformer-t20.o
