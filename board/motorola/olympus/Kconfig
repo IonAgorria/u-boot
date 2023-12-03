@@ -1,0 +1,12 @@
+if TARGET_OLYMPUS
+
+config SYS_BOARD
+	default "olympus"
+
+config SYS_VENDOR
+	default "motorola"
+
+config SYS_CONFIG_NAME
+	default "olympus"
+
+endif

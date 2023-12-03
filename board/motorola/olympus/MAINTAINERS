@@ -1,0 +1,7 @@
+OLYMPUS BOARD
+M:	Svyatoslav Ryhel <clamor95@gmail.com>
+S:	Maintained
+F:	board/motorola/olympus/
+F:	configs/olympus_defconfig
+F:	doc/board/motorola/olympus.rst
+F:	include/configs/olympus.h

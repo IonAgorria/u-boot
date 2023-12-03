@@ -258,6 +258,7 @@ dtb-$(CONFIG_ARCH_TEGRA) += \
 	tegra20-harmony.dtb \
 	tegra20-lg-star.dtb \
 	tegra20-medcom-wide.dtb \
+	tegra20-motorola-olympus.dtb \
 	tegra20-paz00.dtb \
 	tegra20-plutux.dtb \
 	tegra20-seaboard.dtb \
