@@ -13,6 +13,8 @@
 #include <linux/delay.h>
 #include "../cpu.h"
 
+#define NV_PA_DVC_I2C_BASE	0x7000d000
+
 /* In case this function is not defined */
 __weak void pmic_enable_cpu_vdd(void) {}
 
@@ -36,6 +38,8 @@ static void enable_cpu_power_rail(void)
 
 static void t20_init_clocks(void)
 {
+	struct dvc_ctlr *dvc = (struct dvc_ctlr *)NV_PA_DVC_I2C_BASE;
+
 	funcmux_select(PERIPH_ID_DVC_I2C, FUNCMUX_DVC_I2CP);
 
 	/* Put i2c in reset and enable clocks */
@@ -52,6 +56,9 @@ static void t20_init_clocks(void)
 	/* Give clocks time to stabilize, then take i2c out of reset */
 	udelay(1000);
 	reset_set_enable(PERIPH_ID_DVC_I2C, 0);
+
+	/* Enable software control over the line */
+	setbits_le32(&dvc->ctrl3, DVC_CTRL_REG3_I2C_HW_SW_PROG_MASK);
 }
 
 void start_cpu(u32 reset_vector)
