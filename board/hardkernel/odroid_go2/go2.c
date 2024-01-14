@@ -20,9 +20,16 @@ struct oga_model {
 };
 
 enum oga_device_id {
+#ifdef CONFIG_TARGET_ODROID_GO2
 	OGA,
 	OGA_V11,
 	OGS,
+#endif
+#ifdef CONFIG_TARGET_ANBERNIC_RG351
+	RG351V,
+	RG351P,
+	RG351MP,
+#endif
 };
 
 /*
@@ -30,6 +37,7 @@ enum oga_device_id {
  * Value for OGS is inferred based on schematic and observed values.
  */
 static const struct oga_model oga_model_details[] = {
+#ifdef CONFIG_TARGET_ODROID_GO2
 	[OGA] = {
 		856,
 		"rk3326-odroid-go2",
@@ -48,6 +56,27 @@ static const struct oga_model oga_model_details[] = {
 		"ODROID-GO Super",
 		DTB_DIR "rk3326-odroid-go3.dtb",
 	},
+#endif
+#ifdef CONFIG_TARGET_ANBERNIC_RG351
+	[RG351V] = {
+		514,
+		"rk3326-anbernic-rg351v",
+		"Anbernic RG351V",
+		DTB_DIR "rk3326-anbernic-rg351v.dtb",
+	},
+	[RG351P] = {
+		675,
+		"rk3326-anbernic-rg351p",
+		"Anbernic RG351P",
+		DTB_DIR "rk3326-anbernic-rg351p.dtb",
+	},
+	[RG351MP] = {
+		166,
+		"rk3326-anbernic-rg351mp",
+		"Anbernic RG351MP",
+		DTB_DIR "rk3326-anbernic-rg351mp.dtb",
+	},
+#endif
 };
 
 /* Detect which Odroid Go Advance device we are using so as to load the
@@ -82,8 +111,10 @@ int oga_detect_device(void)
 		}
 	}
 
-	if (board_id < 0)
+	if (board_id < 0) {
+		printf("No board matches ADC value: %u\n", adc_info);
 		return board_id;
+	}
 
 	env_set("board", oga_model_details[board_id].board);
 	env_set("board_name",

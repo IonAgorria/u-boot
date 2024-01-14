@@ -1,4 +1,4 @@
-if TARGET_ODROID_GO2
+if TARGET_ODROID_GO2 || TARGET_ANBERNIC_RG351
 
 config SYS_BOARD
 	default "odroid_go2"

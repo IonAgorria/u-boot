@@ -11,6 +11,9 @@ config TARGET_EVB_PX30
 config TARGET_ODROID_GO2
 	bool "ODROID_GO2"
 
+config TARGET_ANBERNIC_RG351
+	bool "ANBERNIC_RG551"
+
 config TARGET_PX30_CORE
 	bool "Engicam PX30.Core"
 	help
