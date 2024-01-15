@@ -85,7 +85,8 @@ dtb-$(CONFIG_ROCKCHIP_PX30) += \
 	px30-engicam-px30-core-ctouch2.dtb \
 	px30-engicam-px30-core-ctouch2-of10.dtb \
 	px30-engicam-px30-core-edimm2.2.dtb \
-	rk3326-odroid-go2.dtb
+	rk3326-odroid-go2.dtb \
+	rk3326-gameconsole-r36s.dtb
 
 dtb-$(CONFIG_ROCKCHIP_RK3036) += \
 	rk3036-sdk.dtb
