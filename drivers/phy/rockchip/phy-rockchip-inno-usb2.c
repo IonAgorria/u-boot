@@ -502,6 +502,10 @@ static const struct udevice_id rockchip_usb2phy_ids[] = {
 		.data = (ulong)&rk3308_phy_cfgs,
 	},
 	{
+		.compatible = "rockchip,px30-usb2phy",
+		.data = (ulong)&rk3328_usb2phy_cfgs,
+	},
+	{
 		.compatible = "rockchip,rk3328-usb2phy",
 		.data = (ulong)&rk3328_usb2phy_cfgs,
 	},
