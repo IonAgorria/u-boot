@@ -96,3 +96,7 @@
 &gpio3 {
 	bootph-all;
 };
+
+&usb20_otg {
+	hnp-srp-disable;
+};
