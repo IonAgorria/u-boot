@@ -115,3 +115,7 @@
 	bootph-all;
 	gpio-ranges = <&pinctrl 0 96 32>;
 };
+
+&usb20_otg {
+	hnp-srp-disable;
+};
