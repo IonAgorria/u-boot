@@ -160,7 +160,11 @@ int tegra_i2c_get_dvc_bus(struct udevice **busp);
 
 static inline void tegra_i2c_ll_write(uint addr, uint data)
 {
+#ifdef CONFIG_TEGRA20
+	struct dvc_ctlr *reg = (struct dvc_ctlr *)TEGRA_DVC_BASE;
+#else
 	struct i2c_ctlr *reg = (struct i2c_ctlr *)TEGRA_DVC_BASE;
+#endif
 
 	writel(addr, &reg->cmd_addr0);
 	writel(0x2, &reg->cnfg);
