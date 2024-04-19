@@ -57,7 +57,7 @@ struct dvc_ctlr {
 	u32 ctrl1;			/* 00: DVC_CTRL_REG1 */
 	u32 ctrl2;			/* 04: DVC_CTRL_REG2 */
 	u32 ctrl3;			/* 08: DVC_CTRL_REG3 */
-	u32 status;			/* 0C: DVC_STATUS_REG */
+	u32 dvc_status;		/* 0C: DVC_STATUS_REG */
 	u32 ctrl;			/* 10: DVC_I2C_CTRL_REG */
 	u32 addr_data;			/* 14: DVC_I2C_ADDR_DATA_REG */
 	u32 reserved_0[2];		/* 18: */
@@ -70,7 +70,7 @@ struct dvc_ctlr {
 	u32 cmd_data1;			/* 4C: DVC_I2C_CMD_DATA1 */
 	u32 cmd_data2;			/* 50: DVC_I2C_CMD_DATA2 */
 	u32 reserved_2[2];		/* 54: */
-	u32 i2c_status;			/* 5C: DVC_I2C_STATUS */
+	u32 status;				/* 5C: DVC_I2C_STATUS */
 	struct i2c_control control;	/* 60 ~ 78 */
 };
 
@@ -165,6 +165,9 @@ static inline void tegra_i2c_ll_write(uint addr, uint data)
 #else
 	struct i2c_ctlr *reg = (struct i2c_ctlr *)TEGRA_DVC_BASE;
 #endif
+
+    //Wait for cnfg send and status busy to be off
+    while ((reg->cnfg & 0x200) != 0 && (reg->status & 0x80) != 0) {}
 
 	writel(addr, &reg->cmd_addr0);
 	writel(0x2, &reg->cnfg);
