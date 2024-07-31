@@ -49,6 +49,14 @@ config SPL_MAC_PARTITION
 	default y if MAC_PARTITION
 	select SPL_PARTITIONS
 
+config TEGRA_PARTITION
+	bool "Enable Nvidia Tegra partition table"
+	select PARTITIONS
+	select EFI_PARTITION
+	help
+	  Say Y here if you would like to use U-Boot on a device with
+	  Nvidia Tegra partition table.
+
 config DOS_PARTITION
 	bool "Enable MS Dos partition table"
 	default y if BOOT_DEFAULTS
