@@ -57,7 +57,7 @@ struct dvc_ctlr {
 	u32 ctrl1;			/* 00: DVC_CTRL_REG1 */
 	u32 ctrl2;			/* 04: DVC_CTRL_REG2 */
 	u32 ctrl3;			/* 08: DVC_CTRL_REG3 */
-	u32 dvc_status;		/* 0C: DVC_STATUS_REG */
+	u32 dvc_status;			/* 0C: DVC_STATUS_REG */
 	u32 ctrl;			/* 10: DVC_I2C_CTRL_REG */
 	u32 addr_data;			/* 14: DVC_I2C_ADDR_DATA_REG */
 	u32 reserved_0[2];		/* 18: */
@@ -70,7 +70,7 @@ struct dvc_ctlr {
 	u32 cmd_data1;			/* 4C: DVC_I2C_CMD_DATA1 */
 	u32 cmd_data2;			/* 50: DVC_I2C_CMD_DATA2 */
 	u32 reserved_2[2];		/* 54: */
-	u32 status;				/* 5C: DVC_I2C_STATUS */
+	u32 status;			/* 5C: DVC_I2C_STATUS */
 	struct i2c_control control;	/* 60 ~ 78 */
 };
 
@@ -156,24 +156,49 @@ struct i2c_ctlr {
 int tegra_i2c_get_dvc_bus(struct udevice **busp);
 
 /* Pre-dm section used for initial setup of PMIC */
-#define I2C_SEND_2_BYTES		0x0A02
+#define TEGRA_I2C_LL_CNFG_LEN_2	        0x2
+#define TEGRA_I2C_LL_CNFG_SEND		0x200
+#define TEGRA_I2C_LL_CNFG_READ		0x40
 
-static inline void tegra_i2c_ll_write(uint addr, uint data)
+static inline void tegra_i2c_ll_write(u8 addr, u16 data_reg)
 {
 #ifdef CONFIG_TEGRA20
-	struct dvc_ctlr *reg = (struct dvc_ctlr *)TEGRA_DVC_BASE;
+	struct dvc_ctlr *ctrl = (struct dvc_ctlr *)TEGRA_DVC_BASE;
 #else
-	struct i2c_ctlr *reg = (struct i2c_ctlr *)TEGRA_DVC_BASE;
+	struct i2c_ctlr *ctrl = (struct i2c_ctlr *)TEGRA_DVC_BASE;
 #endif
 
-    //Wait for cnfg send and status busy to be off
-    while ((reg->cnfg & 0x200) != 0 && (reg->status & 0x80) != 0) {}
+	//Wait for cnfg send and status busy to be off
+	while ((ctrl->cnfg & 0x200) != 0 && (ctrl->status & 0x80) != 0) {}
 
-	writel(addr, &reg->cmd_addr0);
-	writel(0x2, &reg->cnfg);
+	writel(addr, &ctrl->cmd_addr0);
+	writel(TEGRA_I2C_LL_CNFG_LEN_2, &ctrl->cnfg);
 
-	writel(data, &reg->cmd_data1);
-	writel(I2C_SEND_2_BYTES, &reg->cnfg);
+	writel(data_reg, &ctrl->cmd_data1);
+	writel(TEGRA_I2C_LL_CNFG_SEND | TEGRA_I2C_LL_CNFG_LEN_2, &ctrl->cnfg);
+}
+
+static inline u8 tegra_i2c_ll_read(u8 addr, u8 reg)
+{
+#ifdef CONFIG_TEGRA20
+	struct dvc_ctlr *ctrl = (struct dvc_ctlr *)TEGRA_DVC_BASE;
+#else
+	struct i2c_ctlr *ctrl = (struct i2c_ctlr *)TEGRA_DVC_BASE;
+#endif
+
+	//Wait for cnfg send and status busy to be off
+	while ((ctrl->cnfg & 0x200) != 0 && (ctrl->status & 0x80) != 0) {}
+
+	writel(addr, &ctrl->cmd_addr0);
+	writel(TEGRA_I2C_LL_CNFG_LEN_2, &ctrl->cnfg);
+
+	writel(reg, &ctrl->cmd_data1);
+	writel(TEGRA_I2C_LL_CNFG_SEND | TEGRA_I2C_LL_CNFG_LEN_2 | TEGRA_I2C_LL_CNFG_READ, &ctrl->cnfg);
+
+	//Wait for cnfg send and status busy to be off
+	while ((ctrl->cnfg & 0x200) != 0 && (ctrl->status & 0x80) != 0) {}
+
+	return (readl(&ctrl->cmd_data1) >> 8) & 0xFF;
 }
 
 void pmic_enable_cpu_vdd(void);
