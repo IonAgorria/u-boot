@@ -105,6 +105,15 @@ struct ci_drv {
 	struct ept_queue_head		*epts;
 	uint8_t				*items_mem;
 	struct ci_ep			ep[NUM_ENDPOINTS];
+#ifdef CONFIG_TEGRA20
+	/*
+	 * In Tegra T20 the "USBADRA: Device Address Advance" bitflag doesn't exist
+	 * so the new device address to set during SET_ADDRESS can't be deferred by
+	 * hardware, instead store it here until ep completes to apply the change
+	 * into the hw register.
+	 */
+	__le16				device_address;
+#endif
 };
 
 struct ept_queue_head {

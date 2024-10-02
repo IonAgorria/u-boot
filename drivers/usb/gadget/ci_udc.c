@@ -655,6 +655,15 @@ static void handle_ep_complete(struct ci_ep *ci_ep)
 	int num, in, len, j;
 	struct ci_req *ci_req;
 
+#ifdef CONFIG_TEGRA20
+	//Set the device address we previously got from SET_ADDRESS
+	if (controller.device_address != 0) {
+		struct ci_udc *udc = (struct ci_udc *) controller.ctrl->hcor;
+		writel((controller.device_address << 25), &udc->devaddr);
+		controller.device_address = 0;
+	}
+#endif
+
 	num = ci_ep->desc->bEndpointAddress & USB_ENDPOINT_NUMBER_MASK;
 	in = (ci_ep->desc->bEndpointAddress & USB_DIR_IN) != 0;
 	item = ci_get_qtd(num, in);
@@ -783,7 +792,11 @@ static void handle_setup(void)
 		 * write address delayed (will take effect
 		 * after the next IN txn)
 		 */
+#ifdef CONFIG_TEGRA20
+		controller.device_address = r.wValue;
+#else
 		writel((r.wValue << 25) | (1 << 24), &udc->devaddr);
+#endif
 		req->length = 0;
 		usb_ep_queue(controller.gadget.ep0, req, 0);
 		return;
@@ -934,6 +947,9 @@ static int ci_pullup(struct usb_gadget *gadget, int is_on)
 	struct ci_udc *udc = (struct ci_udc *)controller.ctrl->hcor;
 	if (is_on) {
 		/* RESET */
+#ifdef CONFIG_TEGRA20
+		controller.device_address = 0;
+#endif
 		writel(USBCMD_ITC(MICRO_8FRAME) | USBCMD_RST, &udc->usbcmd);
 		udelay(200);
 
