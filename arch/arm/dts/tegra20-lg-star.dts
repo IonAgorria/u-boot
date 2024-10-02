@@ -30,7 +30,18 @@
 		reg = <0x00000000 0x18000000>; /* 384 MB */
 	};
 
+	host1x@50000000 {
+		dc@54200000 {
+			rgb {
+				status = "okay";
+
+				nvidia,panel = <&panel>;
+			};
+		};
+	};
+
 	uartb: serial@70006040 {
+		clocks = <&tegra_car 7>;
 		status = "okay";
 	};
 
@@ -60,6 +71,27 @@
 					regulator-boot-on;
 				};
 			};
+		};
+	};
+
+	i2c-5 {
+		compatible = "i2c-gpio";
+
+		sda-gpios = <&gpio TEGRA_GPIO(Q, 0) GPIO_ACTIVE_HIGH>;
+		scl-gpios = <&gpio TEGRA_GPIO(Q, 1) GPIO_ACTIVE_HIGH>;
+
+		i2c-gpio,delay-us = <5>;
+		i2c-gpio,timeout-ms = <100>;
+
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		aat2870: led-controller@60 {
+			compatible = "skyworks,aat2870";
+			reg = <0x60>;
+
+			enable-gpios = <&gpio TEGRA_GPIO(N, 6) GPIO_ACTIVE_HIGH>;
+			power-supply = <&vdd_3v3_vbat>;
 		};
 	};
 
@@ -113,5 +145,37 @@
 			gpios = <&gpio TEGRA_GPIO(G, 0) GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_DOWN>;
 		};
+	};
+
+	panel: panel {
+		compatible = "simple-panel";
+
+		backlight = <&aat2870>;
+
+		display-timings {
+			timing@0 {
+				/* 480x800@60Hz */
+				clock-frequency = <29816000>;
+
+				hactive = <480>;
+				hfront-porch = <10>;
+				hback-porch = <10>;
+				hsync-len = <10>;
+
+				vactive = <800>;
+				vfront-porch = <4>;
+				vback-porch = <4>;
+				vsync-len = <4>;
+			};
+		};
+	};
+
+	vdd_3v3_vbat: regulator-vbat {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd_vbat";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+		regulator-boot-on;
 	};
 };
