@@ -22,3 +22,13 @@ config TEGRA_BACKLIGHT_PWM
 	select VIDEO_TEGRA20
 	help
 	   Tegra DC dependent backlight.
+
+config TEGRA_8BIT_CPU_BRIDGE
+	bool "Enable 8 bit panel communication protocol for Tegra 20/30"
+	depends on PANEL && DM_GPIO
+	select VIDEO_TEGRA20
+	select VIDEO_MIPI_DSI
+	help
+	   Tegra 20 and Tegra 30 feature 8 bit CPU driver panel control
+	   protocol. This option allows use it as a MIPI DSI bridge to
+	   set up and control compatible panel.
