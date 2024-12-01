@@ -1,0 +1,12 @@
+if TARGET_SAMSUNG_N1
+
+config SYS_BOARD
+	default "n1"
+
+config SYS_VENDOR
+	default "samsung"
+
+config SYS_CONFIG_NAME
+	default "n1"
+
+endif

@@ -1,0 +1,276 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include <dt-bindings/input/input.h>
+
+#include "tegra20.dtsi"
+
+/ {
+	model = "Samsung Galaxy R (GT-I9103)";
+	compatible = "samsung,n1", "nvidia,tegra20";
+
+	chosen {
+		stdout-path = &uartb;
+	};
+
+	aliases {
+		i2c0 = &pwr_i2c;
+
+		mmc0 = &sdmmc4;	/* eMMC */
+		mmc1 = &sdmmc3; /* uSD slot */
+
+		rtc0 = &pmic;
+		rtc1 = "/rtc@7000e000";
+
+		usb0 = &micro_usb;
+	};
+
+	memory {
+		device_type = "memory";
+		reg = <0x00000000 0x40000000>; /* 1 GB */
+	};
+
+	uartb: serial@70006040 {
+		clocks = <&tegra_car 7>;
+		status = "okay";
+	};
+
+	pwr_i2c: i2c@7000d000 {
+		status = "okay";
+		clock-frequency = <400000>;
+
+		pmic: max8907@3c {
+			compatible = "maxim,max8907";
+			reg = <0x3c>;
+
+			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
+			#interrupt-cells = <2>;
+			interrupt-controller;
+
+			#gpio-cells = <2>;
+			gpio-controller;
+
+			maxim,system-power-controller;
+
+			regulators {
+				vdd_1v8_vio: sd3 {
+					regulator-name = "vcc_1v8_io";
+					regulator-min-microvolt = <1800000>;
+					regulator-max-microvolt = <1800000>;
+					regulator-always-on;
+					regulator-boot-on;
+				};
+
+				// check if/where needed
+				iovcc_1v8_lcd: ldo3 {
+					regulator-name = "vcc_1v8_lcd";
+					regulator-min-microvolt = <1800000>;
+					regulator-max-microvolt = <1800000>;
+					regulator-always-on;
+					regulator-boot-on;
+				};
+
+				avdd_3v3_usb: ldo4 {
+					regulator-name = "avdd_3v3_usb";
+					regulator-min-microvolt = <3300000>;
+					regulator-max-microvolt = <3300000>;
+					regulator-always-on;
+					regulator-boot-on;
+				};
+
+				// check if/where needed
+				vdd_3v0_lcd: ldo12 {
+					regulator-name = "vdd_3v0_lcd";
+					regulator-min-microvolt = <3000000>;
+					regulator-max-microvolt = <3000000>;
+					regulator-boot-on;
+				};
+
+				vdd_usd: ldo16 {
+					regulator-name = "vcc_3v3_usd";
+					regulator-min-microvolt = <3300000>;
+					regulator-max-microvolt = <3300000>;
+					regulator-boot-on;
+				};
+			};
+		};
+	};
+
+	micro_usb: usb@c5000000 {
+		status = "okay";
+		dr_mode = "otg";
+	};
+
+	usb-phy@c5000000 {
+		status = "okay";
+		vbus-supply = <&avdd_3v3_usb>;
+	};
+
+	sdmmc3: sdhci@c8000400 {
+		status = "okay";
+		bus-width = <4>;
+
+		vmmc-supply = <&vdd_usd>;
+		vqmmc-supply = <&vdd_1v8_vio>;
+	};
+
+	sdmmc4: sdhci@c8000600 {
+		status = "okay";
+		bus-width = <8>;
+		non-removable;
+
+		vmmc-supply = <&vdd_3v3_sys>;
+		vqmmc-supply = <&vdd_1v8_vio>;
+	};
+
+	/* 32KHz oscillator which is used by PMC */
+	clk32k_in: clock-32k-in {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <32768>;
+		clock-output-names = "ref-oscillator";
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		key-power {
+			label = "Power";
+			gpios = <&gpio TEGRA_GPIO(U, 5) GPIO_ACTIVE_HIGH>;
+			linux,code = <KEY_ENTER>;
+		};
+
+		key-volume-up {
+			label = "Volume Up";
+			gpios = <&gpio TEGRA_GPIO(Q, 1) GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_UP>;
+		};
+
+		key-volume-down {
+			label = "Volume Down";
+			gpios = <&gpio TEGRA_GPIO(Q, 2) GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_DOWN>;
+		};
+
+		key-home {
+			label = "Home";
+			gpios = <&gpio TEGRA_GPIO(O, 5) GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_ENTER>;
+		};
+	};
+
+	vdd_3v3_sys: regulator-3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd_3v3_vs";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
+// Video modelling
+#if 0
+	host1x@50000000 {
+		dc@54200000 {
+			rgb {
+				status = "okay";
+
+				nvidia,panel = <&cmc623>;
+			};
+		};
+	};
+
+	cmc623: bridge {
+		compatible = "samsung,cmc623";
+
+		pwren-gpios = <&gpio TEGRA_GPIO(Q, 4) GPIO_ACTIVE_HIGH>;
+		nrst-gpios = <&gpio TEGRA_GPIO(J, 6) GPIO_ACTIVE_HIGH>;
+		bypass-gpios = <&gpio TEGRA_GPIO(BB, 5) GPIO_ACTIVE_HIGH>;
+		sleep-gpios = <&gpio TEGRA_GPIO(W, 0) GPIO_ACTIVE_HIGH>;
+
+		ldo1-supply = <&vdd_ima1>;
+		ldo2-supply = <&vdd_ima2>;
+
+		panel = <&panel>;
+	};
+	
+	panel: panel {
+		compatible = "simple-panel";
+
+		power-supply = <&vdd_pnl_reg>;
+		enable-gpios = <&gpio>;
+
+		backlight = <&backlight>; // backlight is controlled by the bridge
+
+		display-timings {
+			timing@0 {
+				/* 480x800 LCD panel */
+				clock-frequency = <24000000>;
+//				de-active = <1>;
+//				pixelclk-active = <0>;
+						
+				hactive = <480>;
+				hfront-porch = <10>;
+				hback-porch = <20>;
+				hsync-len = <10>;
+//				hsync-active = <0>;
+						
+				vactive = <800>;
+				vfront-porch = <3>;
+				vback-porch = <4>;
+				vsync-len = <2>;
+//				vsync-active = <0>;
+			};
+		};
+	};
+
+//	GPIO_LCD_LDO_LED_EN TEGRA_GPIO_PR3
+	vdd_pnl_reg: regulator-pnl {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd_panel";
+		regulator-min-microvolt = <3300000>; // fix
+		regulator-max-microvolt = <3300000>; // fix
+		gpio = <&gpio TEGRA_GPIO(R, 3) GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+//	GPIO_IMA_LDOEN1 TEGRA_GPIO_PL5
+	vdd_ima1: regulator-ima1 {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd_panel";
+		regulator-min-microvolt = <3300000>; // fix
+		regulator-max-microvolt = <3300000>; // fix
+		gpio = <&gpio TEGRA_GPIO(L, 5) GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+//	GPIO_IMA_LDOEN2 TEGRA_GPIO_PX0
+	vdd_ima2: regulator-ima2 {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd_panel";
+		regulator-min-microvolt = <3300000>; // fix
+		regulator-max-microvolt = <3300000>; // fix
+		gpio = <&gpio TEGRA_GPIO(X, 0) GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+// N1 may use non default polarities!
+static struct tegra_dc_out_pin n1_dc_out_pins[] = {
+	{
+		.name	= TEGRA_DC_OUT_PIN_DATA_ENABLE,
+		.pol	= TEGRA_DC_OUT_PIN_POL_HIGH,
+	},
+	{
+		.name	= TEGRA_DC_OUT_PIN_H_SYNC,
+		.pol	= TEGRA_DC_OUT_PIN_POL_LOW,
+	},
+	{
+		.name	= TEGRA_DC_OUT_PIN_V_SYNC,
+		.pol	= TEGRA_DC_OUT_PIN_POL_LOW,
+	},
+	{
+		.name	= TEGRA_DC_OUT_PIN_PIXEL_CLOCK,
+		.pol	= TEGRA_DC_OUT_PIN_POL_LOW,
+	},
+};
+#endif
+};

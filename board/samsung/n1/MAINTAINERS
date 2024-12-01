@@ -1,0 +1,7 @@
+N1 BOARD
+M:	Svyatoslav Ryhel <clamor95@gmail.com>
+S:	Maintained
+F:	board/samsung/n1/
+F:	configs/n1_defconfig
+F:	doc/board/samsung/n1.rst
+F:	include/configs/n1.h
