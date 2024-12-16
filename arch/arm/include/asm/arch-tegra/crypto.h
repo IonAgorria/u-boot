@@ -7,6 +7,9 @@
 #ifndef _CRYPTO_H_
 #define _CRYPTO_H_
 
+//Slot that contains SBK when booting U-Boot as first bootloader
+#define TEGRA_AES_SLOT_SBK 0
+
 /**
  * Sign a block of data
  *
