@@ -1,0 +1,68 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include <dt-bindings/input/input.h>
+
+#include "tegra20-samsung-n1-common.dtsi"
+
+/ {
+	model = "Samsung Captivate Glide (SGH-i927)";
+	compatible = "samsung,bose", "nvidia,tegra20";
+	
+	sdmmc3: sdhci@c8000400 {
+		cd-gpios = <&gpio TEGRA_GPIO(V, 6) GPIO_ACTIVE_HIGH>;
+	};
+	
+	gpio-keys {
+		compatible = "gpio-keys";
+		
+		hall {
+			label = "Keyboard Slide";	
+			gpios = <&gpio TEGRA_GPIO(W, 3) GPIO_ACTIVE_LOW>;
+			linux,input-type = <EV_SW>;
+			linux,code = <SW_KEYPAD_SLIDE>;
+		};
+	};
+	
+#if 0
+	host1x@50000000 {
+		dc@54200000 {
+			rgb {
+				status = "okay";
+
+				nvidia,panel = <&framebuffer>;
+			};
+		};
+	};
+
+	panel: panel {
+		compatible = "simple-panel";
+
+		//power-supply = <&vdd_pnl_reg>;
+		//enable-gpios = <&gpio>;
+
+		//backlight = <&backlight>;
+
+		display-timings {
+			timing@0 {
+				/* 480x800 LCD panel */
+				clock-frequency = <24000000>;
+				de-active = <1>;
+				pixelclk-active = <>;
+
+				hactive = <480>;
+				hfront-porch = <16>;
+				hback-porch = <14>;
+				hsync-len = <2>;
+				hsync-active = <1>;
+
+				vactive = <800>;
+				vfront-porch = <28>;
+				vback-porch = <1>;
+				vsync-len = <2>;
+				vsync-active = <1>;
+			};
+		};
+	};
+#endif
+};
