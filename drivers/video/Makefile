@@ -84,6 +84,7 @@ obj-$(CONFIG_VIDEO_SIMPLE) += simplefb.o
 obj-$(CONFIG_VIDEO_VESA) += vesa.o
 obj-$(CONFIG_VIDEO_SEPS525) += seps525.o
 obj-$(CONFIG_VIDEO_ZYNQMP_DPSUB) += zynqmp/
+obj-$(CONFIG_VIDEO_CMC623) += cmc623.o
 
 obj-y += bridge/
 obj-y += sunxi/
