@@ -40,6 +40,7 @@ config TARGET_PAZ00
 config TARGET_PICASSO
 	bool "Acer Tegra20 Picasso board"
 	select BOARD_LATE_INIT
+	select TEGRA_LP0
 
 config TARGET_PLUTUX
 	bool "Avionic Design Plutux board"
@@ -58,6 +59,7 @@ config TARGET_STAR
 config TARGET_SAMSUNG_N1
 	bool "Samsung Tegra20 N1 board"
 	select BOARD_LATE_INIT
+	select TEGRA_LP0
 
 config TARGET_TEC
 	bool "Avionic Design Tamonten Evaluation Carrier"
