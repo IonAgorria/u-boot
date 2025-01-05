@@ -38,6 +38,9 @@ enum {
 	AES_BLOCK_LENGTH	= 128 / 8,
 };
 
+/** A AES block filled with zeros */
+static const u8 AES_ZERO_BLOCK[AES_BLOCK_LENGTH] = {};
+
 /**
  * aes_expand_key() - Expand the AES key
  *
@@ -106,5 +109,116 @@ void aes_cbc_encrypt_blocks(u32 key_size, u8 *key_exp, u8 *iv, u8 *src, u8 *dst,
  */
 void aes_cbc_decrypt_blocks(u32 key_size, u8 *key_exp, u8 *iv, u8 *src, u8 *dst,
 			    u32 num_aes_blocks);
+
+struct udevice;
+
+/**
+ * aes_cmac - Hashes the input data with AES-CMAC, putting the result into dst.
+ * The key slot must be selected already.
+ *
+ * \param dev			the AES udevice 
+ * \param key_size		Size of the aes key (in bits)
+ * \param src			Source data of length 'num_aes_blocks' blocks
+ * \param dst			Destination for hash result
+ * \param num_aes_blocks	Number of AES blocks to encrypt
+ */
+int aes_cmac(struct udevice *dev, u8 *src, u8 *dst, u32 num_aes_blocks);
+
+/**
+ * struct struct aes_ops - Driver model for AES related
+ *				operations
+ *
+ * The uclass interface is implemented by AES crypto devices which use
+ * driver model.
+ * 
+ * Some AES crypto devices use key slots to store the key for the encrypt/decrypt
+ * operations, while others may simply pass the key on each operation.
+ * 
+ * In case the device does not implement hardware slots, driver can emulate or simply
+ * store one active key slot at 0 in the driver state and pass it on each underlying hw
+ * calls for AES operations.
+ * 
+ * Note that some devices like Tegra AES engine may contain preloaded keys by bootrom,
+ * thus in those cases the set_key_for_key_slot() may be skipped.
+ * 
+ * Sequence for a series of AES CBC encryption, one decryption and a CMAC hash example 
+ * with 128bits key at slot 0 would be as follow:
+ * 
+ * set_key_for_key_slot(DEV, 128, KEY, 0);
+ * select_key_slot(128, 0);
+ * aes_cbc_encrypt(DEV, IV1, SRC1, DST1, LEN1);
+ * aes_cbc_encrypt(DEV, IV2, SRC2, DST2, LEN2);
+ * aes_cbc_decrypt(DEV, IV3, SRC3, DST3, LEN3);
+ */
+struct aes_ops {
+    /**
+     * get_available_key_slots() - How many key slots this AES device has
+     */
+    int (*available_key_slots)(void);
+
+    /**
+     * select_key_slot() - Selects the AES key slot to use for following operations
+     *
+     * \param dev			the AES udevice
+     * \param key_size		Size of the aes key (in bits)
+     * \param slot			The key slot to set as selected
+     */
+    int (*select_key_slot)(struct udevice *dev, u32 key_size, u8 slot);
+
+    /**
+     * set_key_for_key_slot() - Sets the AES key to use for specified key slot
+     *
+     * \param dev			the AES udevice 
+     * \param key_size		Size of the aes key (in bits)
+     * \param key			AES key to set
+     * \param slot			The slot to load the key at
+     */
+    int (*set_key_for_key_slot)(struct udevice *dev, u32 key_size, u8 *key, 
+                                u8 slot);
+
+    /**
+     * aes_ecb_encrypt() - Encrypt multiple blocks of data with AES ECB.
+     *
+     * \param dev			the AES udevice 
+     * \param src			Source data of length 'num_aes_blocks' blocks
+     * \param dst			Destination data of length 'num_aes_blocks' blocks
+     * \param num_aes_blocks	Number of AES blocks to encrypt/decrypt
+     */
+    int (*aes_ecb_encrypt)(struct udevice *dev, u8 *src, u8 *dst, u32 num_aes_blocks);
+
+    /**
+     * aes_ecb_decrypt() - Decrypt multiple blocks of data with AES ECB.
+     *
+     * \param dev			the AES udevice 
+     * \param src			Source data of length 'num_aes_blocks' blocks
+     * \param dst			Destination data of length 'num_aes_blocks' blocks
+     * \param num_aes_blocks	Number of AES blocks to encrypt/decrypt
+     */
+    int (*aes_ecb_decrypt)(struct udevice *dev, u8 *src, u8 *dst, u32 num_aes_blocks);
+
+    /**
+     * aes_cbc_encrypt() - Encrypt multiple blocks of data with AES CBC.
+     *
+     * \param dev			the AES udevice 
+     * \param iv			Initialization vector
+     * \param src			Source data of length 'num_aes_blocks' blocks
+     * \param dst			Destination data of length 'num_aes_blocks' blocks
+     * \param num_aes_blocks	Number of AES blocks to encrypt/decrypt
+     */
+    int (*aes_cbc_encrypt)(struct udevice *dev, u8 *iv,
+                           u8 *src, u8 *dst, u32 num_aes_blocks);
+
+    /**
+     * aes_cbc_decrypt() - Decrypt multiple blocks of data with AES CBC.
+     *
+     * \param dev			the AES udevice 
+     * \param iv			Initialization vector
+     * \param src			Source data of length 'num_aes_blocks' blocks
+     * \param dst			Destination data of length 'num_aes_blocks' blocks
+     * \param num_aes_blocks	Number of AES blocks to encrypt/decrypt
+     */
+    int (*aes_cbc_decrypt)(struct udevice *dev, u8 *iv,
+                           u8 *src, u8 *dst, u32 num_aes_blocks);
+};
 
 #endif /* _AES_REF_H_ */

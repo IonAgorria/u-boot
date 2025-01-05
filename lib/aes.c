@@ -28,6 +28,8 @@
 #else
 #include <string.h>
 #endif
+#include <malloc.h>
+#include <dm.h>
 #include "uboot_aes.h"
 
 /* forward s-box */
@@ -687,4 +689,89 @@ void aes_cbc_decrypt_blocks(u32 key_len, u8 *key_exp, u8 *iv, u8 *src, u8 *dst,
 		src += AES_BLOCK_LENGTH;
 		dst += AES_BLOCK_LENGTH;
 	}
+}
+
+/**
+ * Shift a vector left by one bit
+ *
+ * \param in	Input vector
+ * \param out	Output vector
+ * \param size	Length of vector in bytes
+ */
+void left_shift_vector(u8 *in, u8 *out, int size)
+{
+    int carry = 0;
+    int i;
+
+    for (i = size - 1; i >= 0; i--) {
+        out[i] = (in[i] << 1) | carry;
+        carry = in[i] >> 7;	/* get most significant bit */
+    }
+}
+
+int aes_cmac(struct udevice *dev, u8 *src, u8 *dst, u32 num_aes_blocks)
+{
+    const u8 AES_CMAC_CONST_RB = 0x87;  /* from RFC 4493, Figure 2.2 */
+    const u32 TMP_BUFFER_LEN = 128;
+    u8 tmp_block[AES128_KEY_LENGTH] = {};
+    u8 k1[AES128_KEY_LENGTH];
+    u8* tmp_buffer;
+    int ret;
+
+    const struct aes_ops *ops = device_get_ops(dev);
+
+    if (!ops->aes_cbc_encrypt) {
+        log_warning("%s: device lacks ops->aes_cbc_encrypt!\n", __func__);
+        return -ENOSYS;
+    }
+
+    log_debug("%s: 0x%p -> %p blocks %d\n", __func__, src, dst, num_aes_blocks);
+    if (num_aes_blocks == 0) {
+        log_warning("%s: called with 0 blocks!\n", __func__);
+        return -1;
+    }
+
+    //Compute K1 constant needed by AES-CMAC calculation
+    ret = ops->aes_cbc_encrypt(dev, (u8*) AES_ZERO_BLOCK, (u8*) AES_ZERO_BLOCK, tmp_block, 1);
+    if (ret)
+        return -1;
+
+    left_shift_vector(tmp_block, k1, AES_BLOCK_LENGTH);
+
+    if ((tmp_block[0] >> 7) != 0) /* get MSB of L */
+        k1[AES128_KEY_LENGTH - 1] ^= AES_CMAC_CONST_RB;
+
+    //Set what will be the initial IV as zero
+    memset(tmp_block, 0, AES_BLOCK_LENGTH);
+
+    //Process all blocks except last by calling engine several times per dma buffer size
+    if (1 < num_aes_blocks) {
+        tmp_buffer = malloc(AES_BLOCK_LENGTH * min(num_aes_blocks - 1, TMP_BUFFER_LEN));
+        while (1 < num_aes_blocks) {
+            u32 blocks = min(num_aes_blocks - 1, TMP_BUFFER_LEN);
+
+            //Encrypt the current remaining set of blocks that fits in tmp buffer
+            ret = ops->aes_cbc_encrypt(dev, tmp_block, src, tmp_buffer, 1);
+            if (ret)
+                return -1;
+            num_aes_blocks -= blocks;
+            src += blocks * AES_BLOCK_LENGTH;
+
+            //Copy the last encrypted block to tmp_block as IV
+            memcpy(tmp_block, tmp_buffer + ((blocks - 1) * AES_BLOCK_LENGTH), AES_BLOCK_LENGTH);
+        }
+        free(tmp_buffer);
+    }
+    if (num_aes_blocks == 0) {
+        log_err("%s: left with 0 blocks!\n", __func__);
+        return -1;
+    }
+
+    //Last block!
+
+    //XOR last IV with K1
+    aes_apply_cbc_chain_data(tmp_block, k1, tmp_block);
+
+    //Encrypt the last src block already with tmp_block as IV and output to dst
+    return ops->aes_cbc_encrypt(dev, tmp_block, src, dst, 1);
 }

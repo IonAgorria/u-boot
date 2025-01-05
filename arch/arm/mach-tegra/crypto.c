@@ -19,23 +19,7 @@ enum security_op {
 	SECURITY_DECRYPT	= 1 << 2,	/* Dectypt the data */
 };
 
-/**
- * Shift a vector left by one bit
- *
- * \param in	Input vector
- * \param out	Output vector
- * \param size	Length of vector in bytes
- */
-static void left_shift_vector(u8 *in, u8 *out, int size)
-{
-	int carry = 0;
-	int i;
-
-	for (i = size - 1; i >= 0; i--) {
-		out[i] = (in[i] << 1) | carry;
-		carry = in[i] >> 7;	/* get most significant bit */
-	}
-}
+void left_shift_vector(u8 *in, u8 *out, int size);
 
 /**
  * Sign a block of data, putting the result into dst.
