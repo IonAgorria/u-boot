@@ -151,8 +151,7 @@ int tegra_aes_configure(struct tegra_priv *priv) {
         return -1;
 
     //IRAM config
-    printf("%x\n", readl(priv->regs + TEGRA_AES_IRAM_ACCESS_CFG));
-    //writel(0, priv->regs + TEGRA_AES_IRAM_ACCESS_CFG);
+    writel(0, priv->regs + TEGRA_AES_IRAM_ACCESS_CFG);
 
     //Reset interrupts bits, or engine will hang on next operation
     writel(0xFFFFFFFF, priv->regs + TEGRA_AES_INTR_STATUS);
