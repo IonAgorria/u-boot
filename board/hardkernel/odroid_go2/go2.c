@@ -32,6 +32,7 @@ enum oga_device_id {
 #endif
 #ifdef CONFIG_TARGET_GAMECONSOLE_RK3326
 	R36S,
+	R50S,
 #endif
 };
 
@@ -86,6 +87,12 @@ static const struct oga_model oga_model_details[] = {
 		"rk3326-gameconsole-r36s",
 		"GameConsole R36S",
 		DTB_DIR "rk3326-gameconsole-r36s.dtb",
+	},
+	[R50S] = {
+		85,
+		"rk3326-gameconsole-r50s",
+		"GameConsole R50S",
+		DTB_DIR "rk3326-gameconsole-r50s.dtb",
 	},
 #endif
 };
