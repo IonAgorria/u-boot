@@ -18,6 +18,7 @@
 #endif
 #include <rockchip_display_cmds.h>
 #include <odroidgoa_status.h>
+#include <inttypes.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -27,6 +28,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define WIFI_EN_GPIO	110 /* GPIO3_B6 */
 
 unsigned char disp_offs = 0;
+
+extern u64 detected_panel_id[5];
 
 bool is_odroidgo3(void)
 {
@@ -231,6 +234,31 @@ int rk_board_late_init(void)
 	lcd_setfg_color("grey");
 	lcd_printf(0, 18 + disp_offs, 1, " %s", U_BOOT_VERSION);
 	lcd_printf(0, 19 + disp_offs, 1, " %s %s", U_BOOT_DATE, U_BOOT_TIME);
+
+	lcd_printf(2, 2, 0, "Panel Test");
+	lcd_printf(2, 4, 0, "ID 0x%" PRIx64 "\n",
+		detected_panel_id[0]
+	);
+	printf("Panel ID 0x%" PRIx64 "\n",
+		detected_panel_id[0]
+	);
+	lcd_printf(2, 5, 0, "DDB S 0x%" PRIx64 " 0x%" PRIx64 "\n",
+		detected_panel_id[1],
+		detected_panel_id[2]
+	);
+	printf("Panel DDB S 0x%" PRIx64 " 0x%" PRIx64 "\n",
+		detected_panel_id[1],
+		detected_panel_id[2]
+	);
+	lcd_printf(2, 6, 0, "DDB C 0x%" PRIx64 " 0x%" PRIx64 "\n",
+		detected_panel_id[3],
+		detected_panel_id[4]
+	);
+	printf("Panel DDB C 0x%" PRIx64 " 0x%" PRIx64 "\n",
+		detected_panel_id[3],
+		detected_panel_id[4]
+	);
+	mdelay(5000);
 
 	if (!board_check_autotest()) {
 		board_run_autotest();

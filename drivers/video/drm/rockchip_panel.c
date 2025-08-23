@@ -25,6 +25,8 @@
 #include "rockchip_connector.h"
 #include "rockchip_panel.h"
 
+u64 detected_panel_id[5];
+
 struct rockchip_cmd_header {
 	u8 data_type;
 	u8 delay_ms;
@@ -326,6 +328,26 @@ static void panel_simple_prepare(struct rockchip_panel *panel)
 
 	if (plat->delay.init)
 		mdelay(plat->delay.init);
+
+
+	//Get Panel IDs
+	memset(detected_panel_id, 0, 8 * 3);
+	mipi_dsi_set_maximum_return_packet_size(dsi, 8);
+	ret = mipi_dsi_dcs_read(dsi, MIPI_DCS_GET_DISPLAY_ID, &detected_panel_id[0], 8);
+	if (ret < 0) {
+		printf("Unable to read panel ID: %d\n", ret);
+	}
+	mipi_dsi_set_maximum_return_packet_size(dsi, 16);
+	ret = mipi_dsi_dcs_read(dsi, MIPI_DCS_READ_DDB_START, &detected_panel_id[1], 16);
+	if (ret < 0) {
+		printf("Unable to read panel DDB start: %d\n", ret);
+	}
+	mipi_dsi_set_maximum_return_packet_size(dsi, 16);
+	ret = mipi_dsi_dcs_read(dsi, MIPI_DCS_READ_DDB_CONTINUE, &detected_panel_id[3], 16);
+	if (ret < 0) {
+		printf("Unable to read panel DDB continue: %d\n", ret);
+	}
+
 
 	if (plat->on_cmds) {
 		if (priv->cmd_type == CMD_TYPE_SPI)
