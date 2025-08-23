@@ -91,4 +91,4 @@ GTAGS
 *.dtb
 
 #Prebuilt u-boot bins
-sd_fuse/
+sd_fuse/*.img

@@ -42,8 +42,8 @@ OBJ_ARM32=arm-linux-gnueabihf-objdump
 OBJ_ARM64=aarch64-linux-gnu-objdump
 GCC_ARM32=arm-linux-gnueabihf-
 GCC_ARM64=aarch64-linux-gnu-
-TOOLCHAIN_ARM32=../prebuilts/gcc/linux-x86/arm/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin
-TOOLCHAIN_ARM64=../prebuilts/gcc/linux-x86/aarch64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin
+TOOLCHAIN_ARM32=../gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin
+TOOLCHAIN_ARM64=../gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin
 TOOLCHAIN_ARM32_OPT=/opt/toolchains/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin
 TOOLCHAIN_ARM64_OPT=/opt/toolchains/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin
 
